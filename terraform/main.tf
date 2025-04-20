@@ -72,7 +72,7 @@ resource "aws_lambda_function" "entsoe_scraper" {
   function_name = "entsoe-scraper"
   role          = aws_iam_role.lambda_role.arn
   handler       = "bootstrap" # The entry point for the Lambda function
-  runtime       = "provided.al2023"
+  runtime       = "provided.al2"
   filename      = "../main.zip" # Path to the zipped Lambda function code
   timeout       = 60
   architectures = ["arm64"] # Set the architecture to arm64

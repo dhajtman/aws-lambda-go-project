@@ -53,10 +53,11 @@ GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap ./src/main.go
    zip main.zip bootstrap
    ```
 
-2. Create a new Lambda function using the AWS CLI:
+2. Deploy HCL:
 
    ```
-   aws lambda create-function --function-name YourFunctionName --zip-file fileb://deployment.zip --handler main --runtime go1.x --role YourIAMRoleARN
+   cd terraform
+   terraform apply
    ```
 
 3. Update the function code if needed:
