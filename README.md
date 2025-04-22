@@ -2,17 +2,11 @@
 
 This project is a simple AWS Lambda function written in Go. It serves as a template for creating and deploying Lambda functions using the Go programming language.
 
-## Project Structure
+## Building Lambda functions with Go
+https://docs.aws.amazon.com/lambda/latest/dg/lambda-golang.html
 
-```
-aws-lambda-go-project
-├── src
-│   ├── main.go        # Entry point of the Lambda function
-│   └── handler.go     # Contains the main handler function
-├── go.mod             # Module definition file
-├── go.sum             # Checksums for module dependencies
-└── README.md          # Project documentation
-```
+## Migrating AWS Lambda functions from the Go1.x runtime to the custom runtime on Amazon Linux 2
+https://aws.amazon.com/blogs/compute/migrating-aws-lambda-functions-from-the-go1-x-runtime-to-the-custom-runtime-on-amazon-linux-2/
 
 ## Getting Started
 
@@ -57,13 +51,23 @@ GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap ./src/main.go
 
    ```
    cd terraform
-   terraform apply
+   terraform apply -var-file=terraform_A75.tfvars
    ```
 
 3. Update the function code if needed:
 
    ```
    aws lambda update-function-code --function-name entsoe-scraper --zip-file fileb://../main.zip
+   ```
+
+4. Destroy IaaC
+   ```
+   terraform destroy -var-file=terraform_A75.tfvars   
+   ```
+
+5. If required, deleting ENI or you may need to wait
+   ```
+   aws ec2 delete-network-interface --network-interface-id eni-1234567890abcdef0
    ```
 
 ### Testing the Function

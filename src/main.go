@@ -19,22 +19,6 @@ import (
 	s3 "github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type Point struct {
-	Quantity string `xml:"quantity"`
-}
-
-type Period struct {
-	Points []Point `xml:"Point"`
-}
-
-type TimeSeries struct {
-	Period Period `xml:"Period"`
-}
-
-type ResponseXML struct {
-	TimeSeries TimeSeries `xml:"TimeSeries"`
-}
-
 func handleRequest(ctx context.Context) (string, error) {
 	log.Println("Starting the Lambda function...")
 
@@ -46,6 +30,7 @@ func handleRequest(ctx context.Context) (string, error) {
 	inDomain := getEnv("IN_DOMAIN", "10YBE----------2")
 	periodStart := getEnv("PERIOD_START", "202308152200")
 	periodEnd := getEnv("PERIOD_END", "202308162200")
+	targetKey := getEnv("TARGET_KEY", "quantity")
 
 	bucketName := getEnv("S3_BUCKET", "entsoe-data-bucket")
 	outputPrefix := getEnv("OUTPUT_PREFIX", "entsoe_data_")
@@ -56,21 +41,24 @@ func handleRequest(ctx context.Context) (string, error) {
 	// Fetch data from API
 	xmlData, err := fetchDataFromApi(apiUrl)
 	if err != nil {
+		log.Printf("Error fetching data: %v", err)
 		return "", err
 	}
-	log.Println("Fetched XML data from API")
+	log.Printf("Size of fetched XML data: %d bytes", len(xmlData))
 
 	// Parse and process data
-	quantities, err := processData(xmlData)
+	values, err := extractValuesFromXml(xmlData, targetKey)
 	if err != nil {
+		log.Printf("Error processing data: %v", err)
 		return "", err
 	}
-	log.Printf("Extracted data: %v", quantities)
+	log.Printf("Extracted data: %v", values)
 
 	// Convert to CSV
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
-	if err := writer.Write(quantities); err != nil {
+	if err := writer.Write(values); err != nil {
+		log.Printf("Error writing CSV: %v", err)
 		return "", err
 	}
 	writer.Flush()
@@ -78,6 +66,7 @@ func handleRequest(ctx context.Context) (string, error) {
 	// Upload to S3
 	fileName := fmt.Sprintf("%s-%s.csv", outputPrefix, time.Now().Format("20060102T150405"))
 	if err := uploadToS3(ctx, bucketName, fileName, buf.Bytes()); err != nil {
+		log.Printf("Error uploading to S3: %v", err)
 		return "", err
 	}
 	log.Printf("Data uploaded to S3: %s", fileName)
@@ -117,16 +106,36 @@ func fetchDataFromApi(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func processData(xmlData []byte) ([]string, error) {
-	var result ResponseXML
-	if err := xml.Unmarshal(xmlData, &result); err != nil {
-		return nil, fmt.Errorf("error parsing XML: %w", err)
-	}
+func extractValuesFromXml(xmlData []byte, targetTag string) ([]string, error) {
+	decoder := xml.NewDecoder(strings.NewReader(string(xmlData)))
 
 	var values []string
-	for _, point := range result.TimeSeries.Period.Points {
-		values = append(values, point.Quantity)
+	var currentElement string
+
+	for {
+		tok, err := decoder.Token()
+
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("XML parsing error: %w", err)
+		}
+
+		switch el := tok.(type) {
+		case xml.StartElement:
+			// Strip namespace (el.Name.Space) and just keep local part
+			currentElement = el.Name.Local
+		case xml.CharData:
+			data := strings.TrimSpace(string(el))
+			if data != "" && currentElement == targetTag {
+				values = append(values, data)
+			}
+		case xml.EndElement:
+			currentElement = ""
+		}
 	}
+
 	return values, nil
 }
 
