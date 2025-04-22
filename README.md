@@ -31,23 +31,33 @@ https://aws.amazon.com/blogs/compute/migrating-aws-lambda-functions-from-the-go1
    go mod tidy
    ```
 
-### Building the Project
+### Building and pack the Project
 
 To build the project, run:
 
 ```
 GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap ./src/main.go
+zip main.zip bootstrap
 ```
 
-### Deploying to AWS Lambda
-
-1. Zip the binary:
-
+### Create your .tfvars file
    ```
-   zip main.zip bootstrap
+   entsoe_api_url  = "https://web-api.tp.entsoe.eu/api?documentType={document_type}&processType={process_type}&in_Domain={in_domain}&periodStart={period_start}&periodEnd={period_end}&securityToken={api_url_token}"
+   document_type = "A75" # A75 = Actual generation per type (all production types)
+   process_type  = "A16" # A16 = Realised
+   in_domain     = "10Y1001A1001A83F" # Control Area, Bidding Zone, Country
+   period_start  = "202308152200" # Start period (Pattern yyyyMMddHHmm e.g. 201601010000)
+   period_end    = "202308162200" # End period (Pattern yyyyMMddHHmm e.g. 201601010000)
+   target_key    = "quantity" # The target key to parse ENTSOE API response
+   schedule_expression = "rate(1 day)" # Default value
+   s3_bucket_name     = "entsoe-data-buckets"
+   output_prefix = "entsoe-data"
+   secret_token_name = "entsoe_api_token6" # Name of the secret in AWS Secrets Manage
+   entsoe_api_url_token = "xxx"
    ```
 
-2. Deploy HCL:
+### Apply Terraform configuration
+1. Deploy HCL:
 
    ```
    cd terraform
@@ -60,7 +70,7 @@ GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap ./src/main.go
    aws lambda update-function-code --function-name entsoe-scraper --zip-file fileb://../main.zip
    ```
 
-4. Destroy IaaC
+4. Destroy Terraform configuration
    ```
    terraform destroy -var-file=terraform_A75.tfvars   
    ```
@@ -78,6 +88,3 @@ You can test the function using the AWS Lambda console or by invoking it via the
 aws lambda invoke --function-name YourFunctionName output.txt
 ```
 
-### License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
