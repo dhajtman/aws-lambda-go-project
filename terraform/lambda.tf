@@ -4,11 +4,11 @@
 resource "aws_lambda_function" "entsoe_scraper" {
   function_name = "entsoe-scraper"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "bootstrap" # The entry point for the Lambda function
-  runtime       = "provided.al2"
-  filename      = "../main.zip" # Path to the zipped Lambda function code
-  timeout       = 60
-  architectures = ["arm64"] # Set the architecture to arm64
+  handler       = var.handler # The entry point for the Lambda function
+  runtime       = var.runtime
+  filename      = var.filename # Path to the zipped Lambda function code
+  timeout       = var.timeout
+  architectures = var.architectures # Set the architecture to arm64
 
   vpc_config {
     subnet_ids         = [aws_subnet.private.id]

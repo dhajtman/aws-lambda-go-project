@@ -46,6 +46,12 @@ func handleRequest(ctx context.Context) (string, error) {
 	}
 	log.Printf("Size of fetched XML data: %d bytes", len(xmlData))
 
+	// Check if xmlData is empty
+	if len(xmlData) == 0 {
+		log.Println("Fetched XML data is empty")
+		return "", fmt.Errorf("fetched XML data is empty")
+	}
+
 	// Parse and process data
 	values, err := extractValuesFromXml(xmlData, targetKey)
 	if err != nil {

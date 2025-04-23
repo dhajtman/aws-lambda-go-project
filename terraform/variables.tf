@@ -75,3 +75,33 @@ variable "entsoe_api_url_token" {
   description = "Token for accessing the ENTSOE API"
   sensitive   = true
 }
+
+variable "handler" {
+  type        = string
+  description = "The handler for the Lambda function"
+  default     = "bootstrap" # The entry point for the Lambda function
+}
+
+variable "runtime" {
+  type        = string
+  description = "The runtime for the Lambda function"
+  default     = "provided.al2" # The runtime for the Lambda function
+}
+
+variable "architectures" {
+  type        = list(string)
+  description = "The architectures for the Lambda function"
+  default     = ["arm64"] # Set the architecture to arm64
+}
+
+variable "filename" {
+  type        = string
+  description = "The path to the zipped Lambda function code"
+  default     = "../main.zip" # Path to the zipped Lambda function code
+}
+
+variable "timeout" {
+  type        = number
+  description = "The timeout for the Lambda function in seconds"
+  default     = 60 # Timeout in seconds
+}
