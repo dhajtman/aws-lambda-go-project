@@ -36,7 +36,7 @@ https://aws.amazon.com/blogs/compute/migrating-aws-lambda-functions-from-the-go1
 To build the project, run:
 
 ```
-GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap ./src/main.go
+GOOS=linux GOARCH=arm64 go build -tags lambda.norpc -o bootstrap ./src/main.go
 zip main.zip bootstrap
 ```
 
