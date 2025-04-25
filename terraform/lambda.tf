@@ -9,6 +9,7 @@ resource "aws_lambda_function" "entsoe_scraper" {
   filename      = var.filename # Path to the zipped Lambda function code
   timeout       = var.timeout
   architectures = var.architectures # Set the architecture to arm64
+  memory_size   = var.memory_size # Memory size in MB
 
   vpc_config {
     subnet_ids         = [aws_subnet.private.id]

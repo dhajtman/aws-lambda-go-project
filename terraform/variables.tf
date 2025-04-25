@@ -103,5 +103,11 @@ variable "filename" {
 variable "timeout" {
   type        = number
   description = "The timeout for the Lambda function in seconds"
-  default     = 60 # Timeout in seconds
+  default     = 20 # Timeout in seconds
+}
+
+variable "memory_size" {
+  type        = number
+  description = "The memory size for the Lambda function in MB"
+  default     = 256 # Memory size in MB
 }
