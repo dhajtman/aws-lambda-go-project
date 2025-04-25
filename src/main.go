@@ -36,7 +36,6 @@ func handleRequest(ctx context.Context) (string, error) {
 	outputPrefix := getEnv("OUTPUT_PREFIX", "entsoe_data_")
 
 	apiUrl := assemblyApiUrl(apiUrlTemplate, documentType, processType, inDomain, periodStart, periodEnd, apiUrlToken)
-	log.Printf("Fetching data from API URL: %s", apiUrl)
 
 	// Fetch data from API
 	xmlData, err := fetchDataFromApi(apiUrl)
